@@ -1,10 +1,10 @@
-# Working log — ferry delay predictor
+# Working log: ferry delay predictor
 
 Running notes on building this with an AI agent: what I asked for, what landed,
 what I redirected, and the calls I made myself. Source material for the
 "Working with an AI agent" section on the project card.
 
-## Phase 1 — data ingestion
+## Phase 1: data ingestion
 
 ### Decisions I made myself
 
@@ -50,7 +50,7 @@ what I redirected, and the calls I made myself. Source material for the
 Runs on my laptop (kept on, never sleeps, stays logged in for remote desktop).
 Scheduled task `FerryDelayCollector`, every 15 min, writing to `data\ferry.db`.
 
-## Phase 2 — protect the run + first look
+## Phase 2: protect the run + first look
 
 - Chose **not** to just leave it unattended for two months. Added a health check
   (`healthcheck`) and a WAL-safe weekly backup (`backup`, task `FerryDelayBackup`)
@@ -85,7 +85,7 @@ Caveats carried forward: Slåtterøy (exposed lighthouse) overstates the shelter
 crossing, and rough weather != delay for a robust car ferry; that's the
 hypothesis the ferry data will test, not something the climatology proves.
 
-## Phase 3 — modelling scaffold (built ahead of the data)
+## Phase 3: modelling scaffold (built ahead of the data)
 
 Built the baseline-vs-model harness now, so autumn means re-running it, not
 rebuilding. Deliberate rigor choices: time-based split (train on earlier
