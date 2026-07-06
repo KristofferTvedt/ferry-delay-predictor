@@ -101,3 +101,16 @@ Validated the training branch on synthetic data with a planted signal
 (0.18*gust + 1.2*wave): harness recovered wind_gust and wave_height as the top
 coefficients and beat baseline on every metric — so the code path that only
 fires in autumn is already known-good. pandas 3.0 / scikit-learn 1.9 on py3.14.
+
+### Wave height is low-signal on this crossing
+
+Checking the live demo, wave height read 0.0 m. Verified against the oceanforecast
+model at several points along the route: the whole inner Bjørnafjorden is heavily
+damped — ~0.0 now, only ~0.3 m max even over 48 h — while open water a few km
+seaward (Austevoll, Slåtterøy) runs 1.5–1.9 m. Moving the sample point along the
+route doesn't change it; you'd only get bigger numbers by sampling the fjord mouth,
+which isn't where the ferry sails. So `wave_height` is a near-constant ~0 feature
+here and unlikely to carry the model — this is a wind-driven crossing, and gust is
+the real driver. Kept collecting wave (it's free, and winter storms may lift it),
+but expectations set: don't lean on it. Demo keeps wave visible with a note
+explaining the sheltered-fjord reasoning rather than hiding a flat number.
