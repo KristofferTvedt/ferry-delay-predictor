@@ -1,13 +1,14 @@
 # Registers a Windows Scheduled Task that runs the collector every 15 minutes.
+# Uses pythonw.exe so no console window pops up on each run.
 # Run once from the project root:  powershell -ExecutionPolicy Bypass -File scripts\register_task.ps1
 # Remove with:  Unregister-ScheduledTask -TaskName "FerryDelayCollector" -Confirm:$false
 
 $ErrorActionPreference = "Stop"
 $root   = Split-Path -Parent $PSScriptRoot
-$python = Join-Path $root ".venv\Scripts\python.exe"
+$python = Join-Path $root ".venv\Scripts\pythonw.exe"
 $name   = "FerryDelayCollector"
 
-if (-not (Test-Path $python)) { throw "venv python not found at $python" }
+if (-not (Test-Path $python)) { throw "venv pythonw not found at $python" }
 
 $action  = New-ScheduledTaskAction -Execute $python -Argument "-m ferrydelay.collector" -WorkingDirectory $root
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) `
@@ -16,7 +17,7 @@ $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) `
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopOnIdleEnd `
              -MultipleInstances IgnoreNew
 # Interactive: runs while the user session is logged on (survives an RDP
-# disconnect / lock — only a full sign-out stops it). Needs no admin rights.
+# disconnect or lock; only a full sign-out stops it). Needs no admin rights.
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" `
              -LogonType Interactive -RunLevel Limited
 
