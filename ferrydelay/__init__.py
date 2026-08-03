@@ -1,3 +1,3 @@
-"""Fjord ferry delay predictor — data ingestion (Phase 1)."""
+"""Fjord ferry delay predictor: data collection and modelling."""
 
 __version__ = "0.1.0"

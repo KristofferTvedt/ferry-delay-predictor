@@ -2,13 +2,13 @@
 
 Design choices that matter for rigor:
 
-* **Time-based split** (train on earlier sailings, test on later) — never a random
+* **Time-based split** (train on earlier sailings, test on later), never a random
   split. Random splitting leaks future weather into the past and flatters the
   model; a delay predictor must be judged on genuinely unseen future sailings.
 * **Baseline first.** A model that can't beat "always predict the base rate"
   (Brier / log loss) has learned nothing. We print the baseline every run.
 * **Calibrated probabilities.** "30% chance of delay" must mean it. We score
-  Brier + log loss and print a reliability table, not just accuracy — accuracy is
+  Brier + log loss and print a reliability table, not just accuracy. Accuracy is
   meaningless on an imbalanced, mostly-on-time target.
 
 Runs today against thin data: it will report that there aren't enough disrupted
@@ -84,7 +84,7 @@ def main() -> int:
     print(f"rows={n}  disrupted={pos} ({pos/n:.1%})  span={span}\n")
 
     if n < MIN_ROWS or pos < MIN_POSITIVES:
-        print(f"SCAFFOLD READY — not enough signal to train yet "
+        print(f"SCAFFOLD READY: not enough signal to train yet "
               f"(need >={MIN_ROWS} rows and >={MIN_POSITIVES} disrupted; "
               f"have {n} rows, {pos} disrupted).")
         print("Re-run this once autumn weather has built up the dataset.")
@@ -98,7 +98,7 @@ def main() -> int:
           f"test={len(test)} (from {test['aimed_departure'].min():%Y-%m-%d})\n")
 
     if ytr.nunique() < 2:
-        print("Training window has only one class — need a longer span. Re-run later.")
+        print("Training window has only one class, need a longer span. Re-run later.")
         return 0
 
     # Baseline: constant base-rate probability from the training window.

@@ -2,8 +2,8 @@
 
 Two real-time products (no auth, just a User-Agent) drive Phase 1 collection:
 
-  locationforecast  — wind, gust, temperature, fog fraction over the crossing.
-  oceanforecast     — significant wave height, wave direction, sea current.
+  locationforecast  : wind, gust, temperature, fog fraction over the crossing.
+  oceanforecast     : significant wave height, wave direction, sea current.
 
 Frost (historical observations) needs a free client_id and is used for backfill
 in Phase 2; kept here so the historical path exists from the start.

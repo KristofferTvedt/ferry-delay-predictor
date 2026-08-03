@@ -19,7 +19,7 @@ KEEP = 8  # ~2 months of weekly snapshots
 def main() -> int:
     cfg = Config.load()
     if not cfg.db_path.exists():
-        print(f"No database at {cfg.db_path} — nothing to back up.")
+        print(f"No database at {cfg.db_path}, nothing to back up.")
         return 1
 
     backup_dir = cfg.db_path.parent.parent / "backups"

@@ -40,7 +40,7 @@ def main() -> int:
 
     now = datetime.now(timezone.utc)
     if last is None:
-        print("STALE: database is empty — collector has never written.")
+        print("STALE: database is empty, collector has never written.")
         return 1
 
     age_min = (now - last).total_seconds() / 60

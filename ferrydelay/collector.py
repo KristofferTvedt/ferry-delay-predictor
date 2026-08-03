@@ -33,7 +33,7 @@ def run_once(cfg: Config) -> dict:
                 print(f"WARN weather {fetch.__name__}: {exc}", file=sys.stderr)
 
         if not cfg.stop_place_id:
-            print("WARN STOP_PLACE_ID not set — skipping ferry poll. "
+            print("WARN STOP_PLACE_ID not set, skipping ferry poll. "
                   'Run: python -m ferrydelay.lookup stop "Halhjem"', file=sys.stderr)
         else:
             for s in entur.departures(cfg.et_client_name, cfg.stop_place_id,

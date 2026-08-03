@@ -48,7 +48,7 @@ def departures(client_name: str, stop_place_id: str, n: int = 40,
     """Return ferry departures for a stop place, delay computed per call.
 
     ``destination_filter`` (case-insensitive substring on the front text) keeps
-    only sailings toward one destination — the Halhjem quay also serves other
+    only sailings toward one destination. The Halhjem quay also serves other
     routes, and we only want the one the user actually travels.
     """
     data = post_json(

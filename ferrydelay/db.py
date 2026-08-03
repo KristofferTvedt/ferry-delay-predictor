@@ -2,8 +2,8 @@
 
 The two tables are the raw material for Phase 3 modelling:
 
-  weather  — one row per poll, physical conditions on the crossing.
-  sailings — one row per scheduled departure; ``delay_seconds`` (expected minus
+  weather  : one row per poll, physical conditions on the crossing.
+  sailings : one row per scheduled departure; ``delay_seconds`` (expected minus
              aimed) is the label. Rows are UPSERTed as each departure is polled
              repeatedly, so the expected time firms up toward the real one.
 """

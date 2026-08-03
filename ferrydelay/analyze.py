@@ -1,7 +1,7 @@
 """Phase 2 EDA: join each sailing to the weather at its departure hour and
 print a first look at delay vs conditions. Also writes ``data/joined.csv``.
 
-The join is the whole point of this pass — getting timezone alignment right on a
+The join is the whole point of this pass: getting timezone alignment right on a
 small, hand-checkable dataset now beats debugging it on thousands of rows later.
 Sailing departure times are local (+02:00); weather is hourly UTC. We floor each
 departure to its UTC hour and match on that.

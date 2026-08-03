@@ -2,7 +2,7 @@
 
 Answers "how often does it actually blow hard here, and when" using observed
 hourly gusts at Slåtterøy fyr (the exposed lighthouse) over the past few years.
-No ferry data needed — this is here to sanity-check the collection timeline:
+No ferry data needed; this is here to sanity-check the collection timeline:
 if rough weather is a November thing, a September checkpoint will still be calm.
 
     python -m ferrydelay.climatology                 # default station, 3 years
