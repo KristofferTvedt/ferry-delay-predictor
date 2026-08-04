@@ -7,6 +7,12 @@ Target = "disrupted": departure delayed by >= DELAY_THRESHOLD_S, OR cancelled.
 Cancellation is folded into the positive class here because from a passenger's
 standpoint a cancelled sailing is the worst delay; kept separate in storage so
 this choice stays reversible.
+
+"Did not sail" rows (see ``analyze.IMPLAUSIBLE_DELAY_S``) stay in the positive
+class for the same reason: a service that never ran is a disruption, whatever the
+feed called it. That is only defensible for a binary target. Any future model of
+delay *magnitude* has to drop or cap them, since their recorded minutes measure
+how long the row lingered in the feed rather than how late the ferry was.
 """
 from __future__ import annotations
 

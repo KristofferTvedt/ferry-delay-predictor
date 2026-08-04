@@ -17,6 +17,20 @@ from .config import Config
 
 DELAY_THRESHOLD_S = 180  # 3 min: what we'll call "delayed" for a first cut
 
+# Entur's estimatedCalls only lists *upcoming* departures, so a sailing drops out
+# of the feed once it leaves. The final reading is therefore the last estimate
+# before departure, and for an overdue sailing the feed keeps pushing that
+# estimate forward ("any minute now") until the row ages out. Two consequences:
+#
+#   * A delayed sailing's recorded delay is a LOWER BOUND. We saw it still
+#     pending at that point; it left then or later.
+#   * A sailing that never ran at all looks like an enormous delay rather than a
+#     cancellation, because nothing in the feed ever marks it cancelled.
+#
+# Beyond this threshold "delayed" stops being credible: the following scheduled
+# sailing would have overtaken it, so the service almost certainly did not run.
+IMPLAUSIBLE_DELAY_S = 7200  # 2 h
+
 
 def utc_hour(iso_ts: str) -> str:
     dt = datetime.fromisoformat(iso_ts).astimezone(timezone.utc)
@@ -42,15 +56,23 @@ def build_rows(conn) -> list[dict]:
     weather = load_weather_by_hour(conn)
     rows = []
     for s in conn.execute(
-        "SELECT aimed_departure, expected_departure, delay_seconds, cancelled "
-        "FROM sailings WHERE delay_seconds IS NOT NULL"
+        "SELECT aimed_departure, expected_departure, delay_seconds, cancelled, "
+        "last_seen_at FROM sailings WHERE delay_seconds IS NOT NULL"
     ):
         s = dict(s)
         w = weather.get(utc_hour(s["aimed_departure"]), {})
+        # Still pending at our final reading, so the true delay is >= this one.
+        censored = False
+        if s["expected_departure"]:
+            gap = (datetime.fromisoformat(s["expected_departure"])
+                   - datetime.fromisoformat(s["last_seen_at"])).total_seconds()
+            censored = abs(gap) <= 120 and s["delay_seconds"] >= DELAY_THRESHOLD_S
         rows.append({
             "aimed_departure": s["aimed_departure"],
             "delay_seconds": s["delay_seconds"],
             "cancelled": s["cancelled"],
+            "censored": censored,
+            "did_not_sail": s["delay_seconds"] >= IMPLAUSIBLE_DELAY_S,
             "wind_speed": w.get("wind_speed"),
             "wind_gust": w.get("wind_gust"),
             "fog_fraction": w.get("fog_fraction"),
@@ -87,19 +109,37 @@ def main() -> int:
     matched = sum(r["matched_weather"] for r in rows)
     delays = [r["delay_seconds"] for r in rows]
     delayed = sum(1 for d in delays if d >= DELAY_THRESHOLD_S)
+    sailed = [r for r in rows if not r["did_not_sail"]]
 
     print(f"sailings analysed : {len(rows)}")
     print(f"matched to weather: {matched} ({matched/len(rows):.0%})  "
           f"<- unmatched means a missing weather hour, investigate if high")
     print(f"delay median/max  : {statistics.median(delays)/60:.1f} / "
-          f"{max(delays)/60:.1f} min")
+          f"{max(d['delay_seconds'] for d in sailed)/60:.1f} min"
+          f"   (max excludes did-not-sail rows)")
     print(f"delayed >={DELAY_THRESHOLD_S//60}min    : {delayed} "
           f"({delayed/len(rows):.0%})")
+
+    censored = [r for r in rows if r["censored"]]
+    never = [r for r in rows if r["did_not_sail"]]
     print()
-    print("correlation of delay with (Pearson r; tiny-n, treat as directional):")
+    print("data quality:")
+    print(f"  censored delays : {len(censored)} of {delayed} delayed sailings were "
+          f"still pending at the final reading,")
+    print(f"                    so those delays are lower bounds, not exact times.")
+    print(f"  did not sail    : {len(never)} row(s) over "
+          f"{IMPLAUSIBLE_DELAY_S//3600} h, treated as a service that never ran "
+          f"rather than a delay:")
+    for r in never:
+        print(f"                    {r['aimed_departure'][:16]} "
+              f"({r['delay_seconds']/60:.0f} min)")
+
+    print()
+    print("correlation of delay with (Pearson r; tiny-n, treat as directional;")
+    print("did-not-sail rows excluded so they can't dominate the magnitude):")
     for feat in ("wind_speed", "wind_gust", "fog_fraction", "wave_height",
                  "sea_current"):
-        r = _corr(rows, feat)
+        r = _corr(sailed, feat)
         print(f"  {feat:<13}: {'n/a' if r is None else f'{r:+.2f}'}")
 
     out_csv = cfg.db_path.parent / "joined.csv"
