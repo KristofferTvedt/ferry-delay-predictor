@@ -115,10 +115,25 @@ def main() -> int:
     print("  " + _fmt(_scores(yte, prob)))
     _reliability(yte, prob)
 
+    # The verdict that matters, stated plainly rather than left in the numbers.
+    base_s = _scores(yte, base_prob)
+    model_s = _scores(yte, prob)
+    beats = (model_s["brier"] < base_s["brier"]
+             and model_s["logloss"] < base_s["logloss"])
+    print()
+    if beats:
+        print("VERDICT: model beats the base rate on both Brier and log loss.")
+    else:
+        print("VERDICT: model does NOT beat the base rate. On this data it has")
+        print("  learned nothing usable, so the coefficients below are noise and")
+        print("  should not be read as physical effects. Expected while the sample")
+        print("  is mostly calm-weather sailings; re-run once autumn data lands.")
+
     # Interpretability: standardized coefficients from a plain fit.
     plain = _pipeline().fit(Xtr, ytr)
     coefs = plain.named_steps["lr"].coef_[0]
-    print("\nstandardized coefficients (direction & strength):")
+    print("\nstandardized coefficients (direction & strength"
+          f"{'' if beats else '; NOT trustworthy, see verdict'}):")
     for name, c in sorted(zip(FEATURES, coefs), key=lambda t: -abs(t[1])):
         print(f"  {name:<13} {c:+.3f}")
 
