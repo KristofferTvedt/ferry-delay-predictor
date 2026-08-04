@@ -114,3 +114,47 @@ here and unlikely to carry the model. This is a wind-driven crossing, and gust i
 the real driver. Kept collecting wave (it's free, and winter storms may lift it),
 but expectations set: don't lean on it. Demo keeps wave visible with a note
 explaining the sheltered-fjord reasoning rather than hiding a flat number.
+
+## Phase 4: outliers, and what the delay label actually measures
+
+`analyze` started reporting a 376-minute delay, up from an 11-minute max. Chasing
+it turned into the most useful thing I have learned about this dataset.
+
+**What the label really is.** Entur's `estimatedCalls` only returns *upcoming*
+departures, so a sailing drops out of the feed the moment it leaves. The last
+reading is therefore the final estimate before departure, not a confirmed actual.
+For an overdue sailing the feed keeps pushing that estimate forward, so the
+recorded delay equals how long the row sat overdue before ageing out. Two
+consequences I had to accept rather than engineer away:
+
+- Delays on late sailings are **lower bounds**. 55 of the 81 delayed sailings were
+  still pending at the final reading, so the ferry left then or later. `analyze`
+  now reports this as censoring instead of pretending the number is exact.
+- A sailing that never ran looks like a huge delay rather than a cancellation,
+  because nothing in the feed ever marks it cancelled.
+
+**Sorting real from artefact.** My first guess, that midnight sailings were a
+scheduling artefact, was wrong: the hourly breakdown shows 42 sailings in the
+00:00 hour across the period, so night service is genuine. Checking consecutive
+sailings settled it. The 14-15 July cluster (09:40 through 12:40, delays of 30 to
+60 min, recovering to +3 min by 14:20) is a textbook knock-on pattern from a real
+incident and is good data. Only two rows are pathological, both 00:00 departures
+still "expected" at 05:31 and 06:16, which is a service that did not run. Beyond
+about two hours the next scheduled sailing would have overtaken it, so that is the
+threshold now used to separate did-not-sail from delayed.
+
+Dropping those two rows moved the delay correlations from about -0.03 to -0.13,
+which is a good reminder of how far two rows in eleven hundred can drag a Pearson
+r. They stay in the positive class for the binary target, since a service that
+never ran is a disruption, but any future model of delay magnitude has to exclude
+them.
+
+**The model now trains, and loses.** Crossing 81 disrupted sailings put the sample
+past the harness threshold, so it trained for the first time and came out worse
+than predicting the base rate (Brier 0.025 against 0.021, ROC-AUC 0.22). That is
+the scaffolding working: summer is nearly all calm, so there is nothing to learn
+yet, and the coefficients are noise. Added an explicit VERDICT line so the run
+says that in words rather than leaving it to be inferred from four decimals.
+Worth remembering when reading the eventual autumn result: the delays so far
+cluster in busy daytime hours, so time of day is a confound that has to be
+handled before any weather effect can be believed.
