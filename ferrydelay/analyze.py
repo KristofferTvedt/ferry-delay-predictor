@@ -75,6 +75,7 @@ def build_rows(conn) -> list[dict]:
             "did_not_sail": s["delay_seconds"] >= IMPLAUSIBLE_DELAY_S,
             "wind_speed": w.get("wind_speed"),
             "wind_gust": w.get("wind_gust"),
+            "air_temp": w.get("air_temp"),
             "fog_fraction": w.get("fog_fraction"),
             "wave_height": w.get("wave_height"),
             "sea_current": w.get("sea_current"),
@@ -137,8 +138,8 @@ def main() -> int:
     print()
     print("correlation of delay with (Pearson r; tiny-n, treat as directional;")
     print("did-not-sail rows excluded so they can't dominate the magnitude):")
-    for feat in ("wind_speed", "wind_gust", "fog_fraction", "wave_height",
-                 "sea_current"):
+    for feat in ("wind_speed", "wind_gust", "air_temp", "fog_fraction",
+                 "wave_height", "sea_current"):
         r = _corr(sailed, feat)
         print(f"  {feat:<13}: {'n/a' if r is None else f'{r:+.2f}'}")
 

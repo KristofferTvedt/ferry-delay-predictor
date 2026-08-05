@@ -22,7 +22,12 @@ from . import db
 from .analyze import DELAY_THRESHOLD_S, build_rows
 from .config import Config
 
-FEATURES = ["wind_speed", "wind_gust", "fog_fraction", "wave_height", "sea_current"]
+# air_temp is not a hazard on this crossing; it stands in for how busy the ferry
+# is. Warm summer days bring tourist traffic, loading takes longer, and departures
+# slip. It is the strongest single correlate in the summer data, so leaving it out
+# would hide the mechanism actually driving delays right now.
+FEATURES = ["wind_speed", "wind_gust", "air_temp", "fog_fraction",
+            "wave_height", "sea_current"]
 TARGET = "disrupted"
 
 
