@@ -158,3 +158,37 @@ says that in words rather than leaving it to be inferred from four decimals.
 Worth remembering when reading the eventual autumn result: the delays so far
 cluster in busy daytime hours, so time of day is a confound that has to be
 handled before any weather effect can be believed.
+
+## Phase 5: the summer signal is demand, not hazard
+
+Went in to deal with the time-of-day confound and found the hypothesis was wrong.
+The two shapes really do differ: disruption peaks midday (18% at 14:00) while wind
+peaks in the evening (19-20:00), by which point disruption has fallen back to 3%.
+But recomputing each weather value as a deviation from its own hour-of-day mean
+barely moved anything (gust -0.078 to -0.093), so time of day is not what is
+producing the negative correlation.
+
+Testing the other explanation found the strongest correlate in the dataset:
+air temperature, at +0.27 against disruption, three times anything wind-related,
+and it holds on daytime-only sailings (+0.265). The reading I trust: in summer the
+delays are demand-driven. Warm, pleasant days bring tourist traffic to a route
+that carries cars, loading runs long, and departures slip. Wind's negative sign is
+the same story from the other side, since windy days are less pleasant to travel
+on. Day of week gave no clean weekend pattern (Mon 9.3%, Fri 10.5%, Sat 4.8%), so
+I am not claiming that part.
+
+Consequence: `air_temp` was being collected and never used. Now a feature, with the
+comment stating plainly that it proxies how busy the ferry is rather than any
+physical hazard. Model AUC moved from 0.22 (worse than random) to 0.56, still
+short of the base rate, and the verdict line says so.
+
+The thing to carry into autumn is that these are two opposing mechanisms. Summer:
+nice weather brings traffic, which brings delays. Winter: storms bring
+operational trouble, which brings delays. If both hold, delay against weather is
+non-monotonic, and a plain linear model will average them into nothing. That is a
+strong argument for either a non-linear model or an explicit season split once the
+autumn data exists.
+
+One caveat on today's numbers: the test window holds a single disrupted sailing in
+290 rows, so Brier and AUC are close to meaningless at the moment. The improvement
+is weak evidence and I am not treating it as more than that.
